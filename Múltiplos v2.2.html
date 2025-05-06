@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>¡Atrapa al Múltiplo!</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f0f8ff;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      color: #006699;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    #contenedor {
+      display: flex;
+      justify-content: space-between;
+      padding: 20px;
+    }
+
+    #juego {
+      flex: 2;
+      text-align: center;
+    }
+
+    #numero-base {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+
+    #temporizador {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      color: #cc0000;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(10, 40px);
+      gap: 6px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .numero {
+      background-color: white;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      padding: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .numero.correcto {
+      background-color: lightgreen;
+    }
+
+    .numero.incorrecto {
+      background-color: tomato;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: #006699;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    #puntaje {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .deshabilitado {
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    #ranking {
+	width: 350px;
+  	background-color: #fff;
+  	border-left: 2px solid #ccc;
+  	padding-left: 20px;
+  	padding-top: 10px;
+  	box-sizing: border-box;
+	}
+
+    #ranking h2 {
+      color: #333;
+    }
+
+    #ranking ol {
+      padding-left: 0;
+      list-style-position: inside;
+    }
+
+    /* Botón oculto */
+    #borrar-ranking {
+      display: none;
+      margin-top: 20px;
+      background-color: red;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>¡Atrapa al Múltiplo!</h1>
+
+  <div id="contenedor">
+    <div id="juego">
+      <div id="numero-base">Encuentra los múltiplos de: <strong id="base"></strong></div>
+      <div id="temporizador">Tiempo restante: <span id="tiempo">30</span> segundos</div>
+      <div id="grid"></div>
+
+      <button onclick="nuevoJuego()">Nuevo número base</button>
+      <div id="puntaje">Puntaje: 0</div>
+    </div>
+
+    <div id="ranking">
+      <h2>🏆 Ranking Top 10</h2>
+      <ol id="lista-ranking"></ol>
+      <button id="borrar-ranking" onclick="borrarRanking()">Borrar ranking</button>
+    </div>
+  </div>
+
+<script>
+  const grid = document.getElementById("grid");
+  const baseDisplay = document.getElementById("base");
+  const tiempoDisplay = document.getElementById("tiempo");
+  const puntajeDisplay = document.getElementById("puntaje");
+  const listaRanking = document.getElementById("lista-ranking");
+  const botonBorrar = document.getElementById("borrar-ranking");
+
+  let numeroBase = Math.floor(Math.random() * 19) + 2;
+  let puntaje = 0;
+  let tiempo = 30;
+  let intervalo;
+  let juegoActivo = true;
+
+baseDisplay.textContent = numeroBase;
+
+  function crearNumeros() {
+    grid.innerHTML = "";
+    for (let i = 1; i <= 100; i++) {
+      const btn = document.createElement("div");
+      btn.textContent = i;
+      btn.className = "numero";
+      btn.onclick = () => verificarMúltiplo(i, btn);
+      grid.appendChild(btn);
+    }
+  }
+
+  function verificarMúltiplo(numero, btn) {
+    if (!juegoActivo) return;
+    if (numero % numeroBase === 0) {
+      btn.classList.add("correcto");
+      puntaje++;
+    } else {
+      btn.classList.add("incorrecto");
+    }
+    btn.onclick = null;
+    puntajeDisplay.textContent = "Puntaje: " + puntaje;
+  }
+
+  function nuevoJuego() {
+    numeroBase = Math.floor(Math.random() * 19) + 2; // base entre 2 y 19
+    baseDisplay.textContent = numeroBase;
+    puntaje = 0;
+    puntajeDisplay.textContent = "Puntaje: 0";
+    juegoActivo = true;
+    crearNumeros();
+    reiniciarTemporizador();
+  }
+
+  function reiniciarTemporizador() {
+    clearInterval(intervalo);
+    tiempo = 30;
+    tiempoDisplay.textContent = tiempo;
+    intervalo = setInterval(() => {
+      tiempo--;
+      tiempoDisplay.textContent = tiempo;
+      if (tiempo <= 0) {
+        clearInterval(intervalo);
+        juegoActivo = false;
+        deshabilitarNumeros();
+        tiempoDisplay.textContent = "0";
+        setTimeout(registrarPuntaje, 100);
+      }
+    }, 1000);
+  }
+
+  function deshabilitarNumeros() {
+    const numeros = document.querySelectorAll(".numero");
+    numeros.forEach(num => num.classList.add("deshabilitado"));
+  }
+
+  function registrarPuntaje() {
+    const malasPalabras = [
+      "puta", "mierda", "idiota", "estúpido", "imbécil", "tonto", "gil", "concha", "caca", 
+      "culo", "pene", "vagina", "joder", "coño", "puto", "puta madre", "mamón", "maricón", "zorra", 
+      "putita", "pendejo", "pendeja", "cabron", "cabrona", "chinga", "chingar", "follando", "forro", 
+      "putón", "cojon", "putisima", "chupapolla", "chupapijas", "mierdoso", "macho", 
+      "macha", "cogiendo", "pijas", "gorda", "gordo", "gilipollas", "hijodeputa", "perra", "perrito", 
+      "vagabundo", "cerdo", "marica", "putañera", "mierdita", "bitch", "bastardo", "bastarda", 
+      "choro", "chola", "cagon", "mamon", "traga", "pichu", "guarango", "guaranga", 
+      "mierdon", "moco", "cabronazo", "gorrón", "gorrona", "suicida", "drogadicto", "drogadicta", "estupida", 
+      "cornudo", "cornuda", "pucelita", "piruja", "trolazo", "trola", "papa", "huevón", 
+      "huevona", "ojete", "mujerzuela", "desgraciado", "desgraciada", "asqueroso", "asquerosa", 
+      "bocón", "bocona", "machito", "drogón", "drogona", "zángano", "zángana", "cochon", 
+      "cochona", "mequetrefe", "pelotudo", "pelotuda", "marimacho", "soplón", "soplon", "ladrón", "ladrona", 
+      "canalla", "safado", "safada", "marrano", "marrana", "putrefacto", "basura", "tontuelo", 
+      "tontuela", "mierdón", "sonso", "sonsa", "cretino", "cretina", "hijo de puta", "mujerón", "machona", 
+      "trasvesti", "transvesti", "pervertido", "pervertida", "retrasado", "retrasada", "hijueputa", 
+      "chupapollas", "tragapollas", "niña mala", "hijastro", "hijastra", "príncipe", "princesa", 
+      "macaco", "alimaña", "bicho", "cabrón", "tóxico", "hipócrita", "roto", 
+      "rotona", "grasa", "chico rata", "chica rata", "chupame", "verga", "guasca", "guaska", "mamaguasca", "mamagauska", "pija", "pijita", "concha"
+    ];
+
+    let nombre = prompt("¡Tiempo terminado! Ingresa tu nombre:");
+    if (!nombre) return;
+
+    while (!nombre || contienePalabraInapropiada(nombre, malasPalabras)) {
+      nombre = prompt("Ese nombre no está permitido. Ingresá un nombre diferente:");
+    }
+
+    const nuevoRegistro = { nombre, puntaje };
+    let ranking = JSON.parse(localStorage.getItem("rankingMultiplo")) || [];
+    ranking.push(nuevoRegistro);
+    ranking.sort((a, b) => b.puntaje - a.puntaje);
+    ranking = ranking.slice(0, 10);
+    localStorage.setItem("rankingMultiplo", JSON.stringify(ranking));
+    mostrarRanking();
+  }
+
+  // Función actualizada con uso de regex
+  function contienePalabraInapropiada(nombre, malasPalabras) {
+    const nombreLimpio = nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const texto = ` ${nombreLimpio} `;
+    return malasPalabras.some(palabra => {
+      const regex = new RegExp(`\\b${palabra.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+      return regex.test(texto);
+    });
+  }
+
+  function mostrarRanking() {
+    const ranking = JSON.parse(localStorage.getItem("rankingMultiplo")) || [];
+    listaRanking.innerHTML = "";
+    ranking.forEach((r, i) => {
+      const li = document.createElement("li");
+      li.textContent = `${r.nombre} – ${r.puntaje} pts`;
+      listaRanking.appendChild(li);
+    });
+  }
+
+  function borrarRanking() {
+    if (confirm("¿Seguro que quieres borrar el ranking?")) {
+      localStorage.removeItem("rankingMultiplo");
+      mostrarRanking();
+    }
+  }
+
+  // Atajo para mostrar el botón de borrar con Ctrl + Click en el título
+  document.querySelector("h1").addEventListener("click", (e) => {
+    if (e.ctrlKey) {
+      botonBorrar.style.display = "inline-block";
+    }
+  });
+
+  // Inicializar
+  crearNumeros();
+  reiniciarTemporizador();
+  mostrarRanking();
+</script>
+
+
+</body>
+</html>
